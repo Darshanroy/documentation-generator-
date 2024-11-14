@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub File Query</title>
+</head>
+<body>
+  <h1>Ask a Question about GitHub Repository Files</h1>
+  
+  <!-- Form to get GitHub URL, File Filter, and Question -->
+  <form id="queryForm">
+    <div>
+      <label for="github_url">GitHub Repository URL:</label>
+      <input type="text" id="github_url" required />
+    </div>
+    
+    <div>
+      <label for="file_filter">File Filter (e.g., .py):</label>
+      <input type="text" id="file_filter" value=".py" />
+    </div>
+
+    <div>
+      <label for="question">Your Question:</label>
+      <input type="text" id="question" required />
+    </div>
+
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Response</h2>
+  <div id="response"></div>
+
+  <script>
+    // Handle form submission
+    document.getElementById('queryForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      // Get user input values
+      const githubUrl = document.getElementById('github_url').value;
+      const fileFilter = document.getElementById('file_filter').value;
+      const question = document.getElementById('question').value;
+
+      // Prepare data to send in POST request
+      const requestData = {
+        github_url: githubUrl,
+        file_filter: fileFilter,
+        question: question
+      };
+
+      // Send POST request to Flask backend
+      fetch('/get_response', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.answer) {
+          document.getElementById('response').innerHTML = `<p><strong>Answer:</strong> ${data.answer}</p>`;
+        } else if (data.error) {
+          document.getElementById('response').innerHTML = `<p style="color: red;">Error: ${data.error}</p>`;
+        }
+      })
+      .catch(error => {
+        document.getElementById('response').innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+      });
+    });
+  </script>
+</body>
+</html>
