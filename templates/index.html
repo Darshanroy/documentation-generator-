@@ -21,6 +21,11 @@
     </div>
 
     <div>
+      <label for="branch">Branch (default = "main"):</label>
+      <input type="text" id="branch" value="main" />
+    </div>
+
+    <div>
       <label for="question">Your Question:</label>
       <input type="text" id="question" required />
     </div>
@@ -30,6 +35,10 @@
 
   <h2>Response</h2>
   <div id="response"></div>
+  <div id="downloadSection" style="margin-top: 20px; display: none;">
+    <h3>Download the Retrieved Content</h3>
+    <button id="downloadBtn">Download</button>
+  </div>
 
   <script>
     // Handle form submission
@@ -40,12 +49,14 @@
       const githubUrl = document.getElementById('github_url').value;
       const fileFilter = document.getElementById('file_filter').value;
       const question = document.getElementById('question').value;
+      const branch = document.getElementById('branch').value;
 
       // Prepare data to send in POST request
       const requestData = {
         github_url: githubUrl,
         file_filter: fileFilter,
-        question: question
+        question: question,
+        branch: branch
       };
 
       // Send POST request to Flask backend
@@ -59,12 +70,43 @@
       .then(response => response.json())
       .then(data => {
         if (data.answer) {
+          // Display the response answer
           document.getElementById('response').innerHTML = `<p><strong>Answer:</strong> ${data.answer}</p>`;
+
+          // Display the download button
+          const downloadSection = document.getElementById('downloadSection');
+          downloadSection.style.display = 'block';
+
+          // Configure the download button
+          const downloadBtn = document.getElementById('downloadBtn');
+          downloadBtn.onclick = () => {
+            fetch('/download_files/README.md')
+              .then(response => {
+                if (response.ok) {
+                  return response.blob(); // Get the file as a Blob
+                } else {
+                  throw new Error('File not found');
+                }
+              })
+              .then(blob => {
+                const url = window.URL.createObjectURL(blob); // Create object URL
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'README.md'; // Set the filename
+                link.click();
+                window.URL.revokeObjectURL(url); // Clean up the URL
+              })
+              .catch(error => {
+                document.getElementById('response').innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+              });
+          };
         } else if (data.error) {
+          // Display the error message
           document.getElementById('response').innerHTML = `<p style="color: red;">Error: ${data.error}</p>`;
         }
       })
       .catch(error => {
+        // Display any network errors
         document.getElementById('response').innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
       });
     });

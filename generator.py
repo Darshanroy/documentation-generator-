@@ -43,10 +43,10 @@ class CodeArtifact:
         self.huggingfacehub_api_token = huggingfacehub_api_token
         self.persist_directory = persist_directory
 
-    def load_documents(self):
+    def load_documents(self,branch):
         loader = GithubFileLoader(
             repo=self.repo,
-            branch=self.branch,
+            branch=branch,
             access_token=self.access_token,
             github_api_url=self.github_api_url,
             file_filter=self.file_filter

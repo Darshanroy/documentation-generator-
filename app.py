@@ -1,11 +1,11 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template,send_from_directory
 from generator import CodeArtifact
 from retriever import ConversationalRAG
 from dataclasses import dataclass
 import os
 from rich.console import Console
 from rich.markdown import Markdown
-
+from utils import GitHubUrlParser
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
@@ -30,13 +30,18 @@ def get_response():
     github_url = data.get('github_url')
     file_filter = data.get('file_filter', ".py")  # Default to .py if no filter is provided
     question = data.get('question', "")
+    branch = data.get("branch", "main")
+
+    #parse the github url for username/repo-name formate
+    parser = GitHubUrlParser(github_url)
+    parserd_url = parser.get_result()
 
     if not github_url or not question:
         return jsonify({'error': 'GitHub URL and Question are required'}), 400
 
     # Process the request using CodeArtifact and ConversationalRAG
     artifact = CodeArtifact(
-        Credentials.repo,
+        parserd_url,
         Credentials.branch,
         os.getenv("GITHUB_API_TOKEN"),
         Credentials.github_api_url,
@@ -45,7 +50,7 @@ def get_response():
         os.getenv("HUGGINGFACE_HUB_API_TOKEN"),
         Credentials.persist_directory
     )
-    docs = artifact.load_documents()
+    docs = artifact.load_documents(branch)
     vector_store = artifact.create_embeddings(docs)
 
     # Example usage:
@@ -60,6 +65,9 @@ def get_response():
     
     return jsonify({'answer': response['answer']})
 
+@app.route('/download_files/<path:filename>')
+def download_file(filename):
+    return send_from_directory('download_files', filename)
 
 if __name__ == '__main__':
     app.run(debug=True)
