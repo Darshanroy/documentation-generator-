@@ -91,24 +91,3 @@ class ConversationalRAG:
         history = self.get_chat_session_history(session_id)
         return self.conversational_rag_chain.invoke({"input": question},
     config={"configurable": {"session_id": session_id}})
-
-# Example usage
-# if __name__ == "__main__":
-
-#     artifact = CodeArtifact(Credentials.repo, Credentials.branch, os.getenv("GITHUB_API_TOKEN"), Credentials.github_api_url, Credentials.file_filter, Credentials.model, os.getenv("HUGGINGFACE_HUB_API_TOKEN"), Credentials.persist_directory)
-#     docs = artifact.load_documents()
-#     vector_store = artifact.create_embeddings(docs)
-
-#         # Example usage:
-#     groq_api = os.getenv("GROQ_API_KEY")
-#     conversational_rag = ConversationalRAG(groq_api, vector_store)
-#     response = conversational_rag.ask_question("session_1", "what are the things in the .py files!")
-    
-#     from rich.console import Console
-#     from rich.markdown import Markdown
-
-#     console = Console()
-
-#     # Render Markdown content in the terminal
-#     md = Markdown(response['answer'])
-#     console.print(md)
